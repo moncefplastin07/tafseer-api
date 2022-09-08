@@ -8,9 +8,8 @@ import {
   
 async function handler(_req:Request) { 
     const requestURL = new URL(_req.url)
-    const ayaNumber = Number(requestURL.searchParams.get("aya"))
-    const sorahNumber = Number(requestURL.pathname.substring(1)) || null
-    console.log(sorahNumber)
+    const ayaNumber = Number(requestURL.searchParams.get("aya")) || 1
+    const sorahNumber = Number(requestURL.pathname.substring(1)) || 1
     if (ayaNumber > 286 || sorahNumber > 114) {
         return  new Response({append:""}, {
             status: 404,
@@ -20,7 +19,7 @@ async function handler(_req:Request) {
           });
     }
   // Create a post request
-  const response = await fetch(`https://quran.ksu.edu.sa/tafseer/saadi/sura${sorahNumber}-aya${ayaNumber}.html`)
+  const response = await fetch(`http://quran.ksu.edu.sa/tafseer/saadi/sura${sorahNumber}-aya${ayaNumber}.html`)
   const document = new DOMParser().parseFromString(
     `${await response.text()}`,
     "text/html",
