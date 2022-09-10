@@ -1,17 +1,19 @@
-import { serve } from "https://deno.land/std@0.154.0/http/server.ts";
-
-import {
-    DOMParser,
-    Element,
-  } from "https://deno.land/x/deno_dom/deno-dom-wasm.ts";
-  
-  
+import { serve } from "./deps.ts";
+import { getTafseer } from "./getTafseer.ts";
 async function handler(_req:Request) { 
     const requestURL = new URL(_req.url)
-    const ayaNumber = Number(requestURL.searchParams.get("aya")) || 1
-    const sorahNumber = Number(requestURL.pathname.substring(1)) || 1
-    if (ayaNumber > 286 || sorahNumber > 114) {
-        return  new Response({append:""}, {
+    const urlPathName = requestURL.pathname.split('/').slice(1)
+    const [mofasir, sorah, ayah] = urlPathName
+    if (urlPathName.length < 3) {
+      return  new Response(JSON.stringify({error:"الرابط الذي قمت بادخاله غير صالح"}), {
+        status: 404,
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+    }
+    if (+ayah > 286 || +sorah > 114) {
+        return  new Response(JSON.stringify({error:"الاية او السورة التي قمت بادخالها خير موجودة"}), {
             status: 404,
             headers: {
               "content-type": "application/json",
@@ -19,18 +21,9 @@ async function handler(_req:Request) {
           });
     }
   // Create a post request
-  const response = await fetch(`http://quran.ksu.edu.sa/tafseer/saadi/sura${sorahNumber}-aya${ayaNumber}.html`)
-  const document = new DOMParser().parseFromString(
-    `${await response.text()}`,
-    "text/html",
-  )!;
-  const tafseerConteiner = document.querySelector('#div_saadi')
-  const tafseer = {
-    ayah: tafseerConteiner.children[0].innerText,
-    tafseerH: tafseerConteiner.children[2].innerText
-  }
+ const tafseer = await getTafseer(mofasir,sorah,ayah)
   return  new Response(JSON.stringify(tafseer), {
-    status: response.status,
+    status: 200,
     headers: {
       "content-type": "application/json",
     },
